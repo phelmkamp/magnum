@@ -1,0 +1,2 @@
+# magnum
+Go enum generator
