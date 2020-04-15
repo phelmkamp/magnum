@@ -1,0 +1,8 @@
+// {{.Name}} returns the {{.RetVals}} for the given name.
+func {{.Name}}(name string) ({{.RetVals}}, error) {
+	switch name {
+	{{.Misc.Cases}}
+	default:
+		return {{.RetVals}}{{"{}"}}, fmt.Errorf("unknown name: %s", name)
+	}
+}

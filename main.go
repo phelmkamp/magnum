@@ -121,17 +121,6 @@ func main() {
 						// package.type
 						fldPkg = ft.X.(*ast.Ident).Name
 						fldType = fmt.Sprintf(accessTemplate, fldPkg, ft.Sel.Name)
-					case *ast.ArrayType:
-						switch elt := ft.Elt.(type) {
-						case *ast.Ident:
-							fldType = "[]" + elt.Name
-						case *ast.SelectorExpr:
-							// package.type
-							fldPkg = elt.X.(*ast.Ident).Name
-							fldType = fmt.Sprintf(accessTemplate, "[]"+fldPkg, elt.Sel.Name)
-						}
-					case *ast.MapType:
-						fldType = fmt.Sprintf("map[%s]%s", ft.Key.(*ast.Ident).Name, ft.Value.(*ast.Ident).Name)
 					default:
 						log.Printf("Unsupported field type: %v\n", ft)
 						continue
@@ -152,16 +141,33 @@ func main() {
 					}
 
 					fldName := f.Names[0].Name
-					var valsBldr *strings.Builder
+					var valsBldr, casesBldr *strings.Builder
 					if fldName == "name" {
+						// values func
 						valsBldr = &strings.Builder{}
 						fn := gen.Func{
-							Name:    upperFirst(typeName) + "s",
+							Name:    typeName + "s",
 							RetVals: "[]" + typeName,
 							Misc: map[string]interface{}{
 								"Values": valsBldr,
 							},
 							Tmpl: "values",
+						}
+						genFile.Funcs = append(genFile.Funcs, fn)
+						log.Printf("Adding function: \"%s\"\n", fn.Name)
+
+						// new func
+						log.Printf("Adding import: \"%s\"\n", "fmt")
+						genFile.Imports["fmt"] = struct{}{}
+
+						casesBldr = &strings.Builder{}
+						fn = gen.Func{
+							Name:    "New" + typeName,
+							RetVals: typeName,
+							Misc: map[string]interface{}{
+								"Cases": casesBldr,
+							},
+							Tmpl: "new",
 						}
 						genFile.Funcs = append(genFile.Funcs, fn)
 						log.Printf("Adding function: \"%s\"\n", fn.Name)
@@ -207,10 +213,19 @@ func main() {
 						if fldName == "name" {
 							if valsBldr.Len() > 0 {
 								valsBldr.WriteString(", ")
+								casesBldr.WriteString("\n\t")
 							}
-							valsBldr.WriteString(upperFirst(v))
+
+							upper := upperFirst(v)
+							valsBldr.WriteString(upper)
 							valsBldr.WriteString("()")
 							valueFns[i].Misc["Value"] = `"` + v + `"`
+
+							casesBldr.WriteString(`case "`)
+							casesBldr.WriteString(v)
+							casesBldr.WriteString("\":\n\t\treturn ")
+							casesBldr.WriteString(upper)
+							casesBldr.WriteString("(), nil")
 						}
 					}
 
@@ -232,8 +247,31 @@ func main() {
 					log.Printf("Adding method: \"%s.%s\"\n", typeName, fn.Name)
 				}
 
+				if len(valueFns) < 1 {
+					return true
+				}
+
 				genFile.Funcs = append(genFile.Funcs, valueFns...)
 				genFile.Funcs = append(genFile.Funcs, getters...)
+
+				// add marshal methods
+				fn := gen.Func{
+					Name:    "MarshalText",
+					RcvName: rcvName,
+					RcvType: typeName,
+					Tmpl:    "marshal",
+				}
+				genFile.Funcs = append(genFile.Funcs, fn)
+				log.Printf("Adding function: \"%s\"\n", fn.Name)
+
+				fn = gen.Func{
+					Name:    "UnmarshalText",
+					RcvName: rcvName,
+					RcvType: typeName,
+					Tmpl:    "unmarshal",
+				}
+				genFile.Funcs = append(genFile.Funcs, fn)
+				log.Printf("Adding function: \"%s\"\n", fn.Name)
 
 				return true
 			})

@@ -1,0 +1,4 @@
+// MarshalText encodes the receiver into textual form.
+func ({{.RcvName}} {{.RcvType}}) MarshalText() (text []byte, err error) {
+	return []byte({{.RcvName}}.String()), nil
+}
