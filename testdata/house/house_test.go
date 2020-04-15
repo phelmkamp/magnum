@@ -18,11 +18,11 @@ func Example() {
 
 	var h2 house.House
 	json.Unmarshal(data, &h2)
-	fmt.Println("h2 =", h2)
+	fmt.Println("(h == h2) =", h == h2)
 	// Output:
 	// h = Ravenclaw
 	// h.Color() = violet
 	// h.Founder() = Rowena Ravenclaw
 	// data = "Ravenclaw"
-	// h2 = Ravenclaw
+	// (h == h2) = true
 }
