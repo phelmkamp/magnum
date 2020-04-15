@@ -1,0 +1,9 @@
+// UnmarshalText decodes the receiver from its textual form.
+func ({{.RcvName}} *{{.RcvType}}) UnmarshalText(text []byte) error {
+	v, err := New{{.RcvType}}(string(text))
+	if err != nil {
+		return err
+	}
+	*{{.RcvName}} = v
+	return nil
+}

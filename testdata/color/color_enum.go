@@ -2,9 +2,35 @@
 
 package color
 
+import (
+	"fmt"
+)
+
 // Colors returns all possible Colors.
 func Colors() []Color {
 	return []Color{Red(), Orange(), Yellow(), Green(), Blue(), Indigo(), Violet()}
+}
+
+// NewColor returns the Color for the given name.
+func NewColor(name string) (Color, error) {
+	switch name {
+	case "red":
+		return Red(), nil
+	case "orange":
+		return Orange(), nil
+	case "yellow":
+		return Yellow(), nil
+	case "green":
+		return Green(), nil
+	case "blue":
+		return Blue(), nil
+	case "indigo":
+		return Indigo(), nil
+	case "violet":
+		return Violet(), nil
+	default:
+		return Color{}, fmt.Errorf("unknown name: %s", name)
+	}
 }
 
 // Red returns the "red" Color.
@@ -59,4 +85,19 @@ func Violet() Color {
 // String returns the Color's name.
 func (c Color) String() string {
 	return c.name
+}
+
+// MarshalText encodes the receiver into textual form.
+func (c Color) MarshalText() (text []byte, err error) {
+	return []byte(c.String()), nil
+}
+
+// UnmarshalText decodes the receiver from its textual form.
+func (c *Color) UnmarshalText(text []byte) error {
+	v, err := NewColor(string(text))
+	if err != nil {
+		return err
+	}
+	*c = v
+	return nil
 }

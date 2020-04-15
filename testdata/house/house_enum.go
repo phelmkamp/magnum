@@ -3,12 +3,30 @@
 package house
 
 import (
+	"fmt"
+
 	"github.com/phelmkamp/magnum/testdata/color"
 )
 
 // Houses returns all possible Houses.
 func Houses() []House {
 	return []House{Gryffindor(), Hufflepuff(), Ravenclaw(), Slytherin()}
+}
+
+// NewHouse returns the House for the given name.
+func NewHouse(name string) (House, error) {
+	switch name {
+	case "Gryffindor":
+		return Gryffindor(), nil
+	case "Hufflepuff":
+		return Hufflepuff(), nil
+	case "Ravenclaw":
+		return Ravenclaw(), nil
+	case "Slytherin":
+		return Slytherin(), nil
+	default:
+		return House{}, fmt.Errorf("unknown name: %s", name)
+	}
 }
 
 // Gryffindor returns the "Gryffindor" House.
@@ -60,4 +78,19 @@ func (h House) Color() color.Color {
 // Founder returns the House's founder.
 func (h House) Founder() string {
 	return h.founder
+}
+
+// MarshalText encodes the receiver into textual form.
+func (h House) MarshalText() (text []byte, err error) {
+	return []byte(h.String()), nil
+}
+
+// UnmarshalText decodes the receiver from its textual form.
+func (h *House) UnmarshalText(text []byte) error {
+	v, err := NewHouse(string(text))
+	if err != nil {
+		return err
+	}
+	*h = v
+	return nil
 }

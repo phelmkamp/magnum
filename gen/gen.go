@@ -60,7 +60,6 @@ func (is Imports) String() string {
 type Func struct {
 	RcvName, RcvType string
 	Name             string
-	Args             string
 	RetVals          string
 	Misc             map[string]interface{}
 	Tmpl             string
